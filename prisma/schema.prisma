@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id
+  full_name  String
+  email      String   @unique
+  avatar_url String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  group_memberships StudyGroupMember[]
+  notes            Note[]
+  sessions         Session[]
+  messages         GroupMessage[]
+}
+
+model StudyGroup {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  members  StudyGroupMember[]
+  notes    Note[]
+  sessions Session[]
+  messages GroupMessage[]
+}
+
+model StudyGroupMember {
+  id         String             @id @default(cuid())
+  role       StudyGroupMemberRole @default(MEMBER)
+  created_at DateTime           @default(now())
+  updated_at DateTime           @updatedAt
+
+  user_id   String
+  group_id  String
+  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  group     StudyGroup @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, group_id])
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  title      String
+  content    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user_id   String
+  group_id  String
+  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  group     StudyGroup @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  tags      Tag[]
+}
+
+model Tag {
+  id         String   @id @default(cuid())
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  notes Note[]
+}
+
+model Session {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  start_time  DateTime
+  duration    Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user_id   String
+  group_id  String
+  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  group     StudyGroup @relation(fields: [group_id], references: [id], onDelete: Cascade)
+}
+
+model GroupMessage {
+  id         String      @id @default(cuid())
+  content    String
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+  group_id   String
+  user_id    String
+  group      StudyGroup  @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  user       User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([group_id])
+  @@index([user_id])
+}
+
+enum StudyGroupMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+} 

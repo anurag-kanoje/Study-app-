@@ -10,7 +10,7 @@ import {
   Menu,
   X
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/app/components/ui/button'
 
 interface NavigationProps {
   isOpen: boolean
@@ -35,8 +35,9 @@ export function Navigation({ isOpen, onToggle, isMobile }: NavigationProps) {
         size="sm"
         className="fixed top-4 left-4 md:hidden z-50"
         onClick={onToggle}
-        icon={isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-      />
+      >
+        {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+      </Button>
 
       <nav
         className={cn(

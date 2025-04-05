@@ -1,4 +1,4 @@
-import SmartNotes from "@/components/SmartNotes"
+import SmartNotes from "@/app/components/SmartNotes"
 
 export default function SmartNotesPage() {
   return (

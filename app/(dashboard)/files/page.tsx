@@ -6,13 +6,13 @@ import { useEffect, useState, useRef } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/lib/supabase"
 import type { FileObject } from "@/lib/supabase"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/components/ui/use-toast"
+import { Button } from "@/app/components/ui/button"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card"
+import { useToast } from "@/app/components/ui/use-toast"
 import { Upload, File, Image, FileText, FileIcon as FilePdf, FileArchive, Download, Trash2, Eye } from "lucide-react"
 import { formatBytes } from "@/lib/utils"
 import { format } from "date-fns"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/app/components/ui/alert-dialog"
 
 export default function FilesPage() {
   const { user } = useAuth()

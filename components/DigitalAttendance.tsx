@@ -14,7 +14,7 @@ import { format } from "date-fns"
 import { CalendarIcon, Search, Download, QrCode, CheckCircle, XCircle, Clock, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
-import QRCode from "qrcode.react"
+import { QRCodeSVG } from 'qrcode.react'
 
 // Sample data
 const classes = [
@@ -317,7 +317,7 @@ export function DigitalAttendance() {
                     {qrCodeVisible ? (
                       <div className="text-center">
                         <div className="bg-white p-4 rounded-md inline-block mb-4">
-                          <QRCode value={qrCodeValue} size={200} />
+                          <QRCodeSVG value={qrCodeValue} size={256} />
                         </div>
                         <p className="text-sm text-muted-foreground mb-4">
                           Valid for: {selectedClass && classes.find((c) => c.id === selectedClass)?.name}

@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -25,19 +27,17 @@ export interface CardProps
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant, isInteractive = false, children, ...props }, ref) => {
     return (
-      <motion.div
+      <div
         ref={ref}
-        whileHover={isInteractive ? { scale: 1.02 } : undefined}
-        whileTap={isInteractive ? { scale: 0.98 } : undefined}
         className={cn(
           cardVariants({ variant }),
-          isInteractive && 'cursor-pointer transition-all duration-200',
+          isInteractive && 'cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
           className
         )}
         {...props}
       >
         {children}
-      </motion.div>
+      </div>
     )
   }
 )
@@ -67,6 +67,18 @@ export const CardTitle = React.forwardRef<
   />
 ))
 CardTitle.displayName = 'CardTitle'
+
+export const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn('text-sm text-muted-foreground', className)}
+    {...props}
+  />
+))
+CardDescription.displayName = 'CardDescription'
 
 export const CardContent = React.forwardRef<
   HTMLDivElement,

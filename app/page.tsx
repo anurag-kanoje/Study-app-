@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/mode-toggle"
+import { Button } from "@/app/components/ui/button"
+import { ModeToggle } from "@/app/components/mode-toggle"
 import { ArrowRight, BookOpen, Brain, Upload, Clock } from "lucide-react"
 
 export default function LandingPage() {

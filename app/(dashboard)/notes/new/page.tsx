@@ -3,15 +3,15 @@
 import { useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/lib/supabase"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/components/ui/use-toast"
+import { Button } from "@/app/components/ui/button"
+import { Input } from "@/app/components/ui/input"
+import { Textarea } from "@/app/components/ui/textarea"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card"
+import { useToast } from "@/app/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Save, Sparkles } from "lucide-react"
 import Link from "next/link"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs"
 
 export default function NewNotePage() {
   const { user } = useAuth()

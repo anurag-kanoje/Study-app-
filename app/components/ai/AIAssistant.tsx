@@ -1,8 +1,13 @@
+"use client"
+
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { MessageSquare, X, Minimize2, Maximize2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import type { Message } from '@/types'
+import { Button } from '@/app/components/ui/button'
+
+type Message = {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false)
@@ -36,15 +41,13 @@ export function AIAssistant() {
 
   return (
     <>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+      {isOpen && (
+          <div
             className={`
               fixed bottom-4 right-4 w-96 bg-white rounded-xl shadow-2xl
+              transition-all duration-300 transform
               ${isMinimized ? 'h-14' : 'h-[600px]'}
+              animate-in fade-in slide-in-from-bottom-4
             `}
           >
             <div className="flex items-center justify-between p-4 border-b">
@@ -53,15 +56,17 @@ export function AIAssistant() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  icon={isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
                   onClick={() => setIsMinimized(!isMinimized)}
-                />
+                >
+                  {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  icon={<X className="h-4 w-4" />}
                   onClick={() => setIsOpen(false)}
-                />
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             </div>
 
@@ -99,16 +104,15 @@ export function AIAssistant() {
                 </form>
               </>
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {!isOpen && (
         <Button
           className="fixed bottom-4 right-4"
           onClick={() => setIsOpen(true)}
-          icon={<MessageSquare className="h-5 w-5" />}
         >
+          <MessageSquare className="h-5 w-5" />
           AI Assistant
         </Button>
       )}

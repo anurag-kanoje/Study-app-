@@ -7,6 +7,19 @@ try {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
+  transpilePackages: [
+    'react-native',
+    'react-native-web',
+    'expo',
+    '@expo/vector-icons',
+    'react-native-paper',
+    'react-native-safe-area-context',
+    'react-native-screens',
+    '@react-navigation/native',
+    '@react-navigation/stack',
+    '@react-navigation/bottom-tabs'
+  ],
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -14,22 +27,27 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    domains: ['lh3.googleusercontent.com', 'avatars.githubusercontent.com'],
     unoptimized: true,
   },
   experimental: {
-    serverActions: {
-      allowedOrigins: ["localhost:3000"],
-    },
+    serverComponentsExternalPackages: ['@prisma/client']
   },
   webpack: (config) => {
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      child_process: false,
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      'react-native$': 'react-native-web',
     };
+    config.resolve.extensions = [
+      '.web.js',
+      '.web.jsx',
+      '.web.ts',
+      '.web.tsx',
+      ...config.resolve.extensions,
+    ];
     return config;
-  },
-}
+  }
+};
 
 mergeConfig(nextConfig, userConfig)
 

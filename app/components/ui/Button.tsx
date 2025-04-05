@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -37,13 +39,12 @@ export interface ButtonProps
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, isLoading, icon, children, ...props }, ref) => {
     return (
-      <motion.button
+      <button
         ref={ref}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
         className={cn(
           buttonVariants({ variant, size }),
           isLoading && 'opacity-70 cursor-not-allowed',
+          'transition-transform hover:scale-[1.02] active:scale-[0.98]',
           className
         )}
         disabled={isLoading}
@@ -53,7 +54,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           <Loader2 className="animate-spin h-5 w-5" />
         ) : icon}
         {children}
-      </motion.button>
+      </button>
     )
   }
 )

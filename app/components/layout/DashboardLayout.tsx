@@ -1,5 +1,6 @@
+"use client"
+
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Navigation } from './Navigation'
 import { AIAssistant } from '../ai/AIAssistant'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
@@ -21,14 +22,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         ${isNavOpen && !isMobile ? 'ml-64' : 'ml-0'}
       `}>
         <div className="container mx-auto px-4 py-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
             {children}
-          </motion.div>
+          </div>
         </div>
       </main>
 
