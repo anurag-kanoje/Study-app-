@@ -2,7 +2,7 @@
 
 import { Bell, Menu } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/app/components/ui/button';
+import { Button } from '@/app/components/ui/Button';
 import { ModeToggle } from '@/app/components/mode-toggle';
 import {
   DropdownMenu,

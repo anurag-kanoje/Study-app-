@@ -10,7 +10,7 @@ import {
   Menu,
   X
 } from 'lucide-react'
-import { Button } from '@/app/components/ui/button'
+import { Button } from '@/app/components/ui/Button'
 
 interface NavigationProps {
   isOpen: boolean

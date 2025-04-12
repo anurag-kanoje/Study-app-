@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Mic, StopCircle } from 'lucide-react'
-import { Button } from '@/app/components/ui/button'
+import { Button } from '@/app/components/ui/Button'
 import { useToast } from '@/app/components/ui/use-toast'
 
 interface VoiceTranscriptionProps {

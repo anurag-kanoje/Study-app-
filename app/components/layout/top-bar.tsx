@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { Bell, Menu, Moon, Sun, X } from 'lucide-react';
+import { Bell, Menu, Moon, Sun, X, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useAuth } from '@/contexts/AuthContext';
 import { type Database } from '@/app/types/supabase';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
 
 interface Notification {
   id: string;
@@ -22,9 +24,28 @@ export function TopBar() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const supabase = createClientComponentClient<Database>();
+  const { session, loading, error } = useAuth();
+  const router = useRouter();
+  const supabase = createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   useEffect(() => {
+    if (loading) return;
+
+    if (error) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+
+    if (!session) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+
     // Subscribe to notifications
     const channel = supabase
       .channel('notifications')
@@ -42,23 +63,32 @@ export function TopBar() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (channel as any).unsubscribe();
+      } catch (err) {
+        console.error('Error unsubscribing from auth state changes:', err);
+      }
     };
-  }, [supabase]);
+  }, [supabase, session, loading, error]);
 
   const markAsRead = async (notificationId: string) => {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('id', notificationId);
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
 
-    if (!error) {
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notificationId ? { ...n, read: true } : n
-        )
-      );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      if (!error) {
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notificationId ? { ...n, read: true } : n
+          )
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
     }
   };
 
@@ -160,6 +190,36 @@ export function TopBar() {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="relative">
+            <button
+              className={cn(
+                'inline-flex h-10 w-10 items-center justify-center rounded-md',
+                'hover:bg-accent hover:text-accent-foreground',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+              )}
+            >
+              <User className="h-6 w-6" />
+            </button>
+
+            <div className="absolute right-0 mt-2 w-48 rounded-md border bg-popover p-2 shadow-md">
+              <div className="space-y-1">
+                <div className="flex items-center px-3 py-2">
+                  <User className="h-5 w-5 mr-2" />
+                  <span className="text-sm font-medium">{session?.user?.email}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    supabase.auth.signOut();
+                    router.push('/login');
+                  }}
+                  className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  Sign out
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

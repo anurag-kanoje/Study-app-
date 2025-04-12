@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from "@/app/components/ui/button"
+import { Button } from "@/app/components/ui/Button"
 import { Input } from "@/app/components/ui/input"
 import { Textarea } from "@/app/components/ui/textarea"
 import { Progress } from "@/app/components/ui/progress"
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/Card"
 
 export default function VideoSummaryPage() {
   const [videoUrl, setVideoUrl] = useState('')

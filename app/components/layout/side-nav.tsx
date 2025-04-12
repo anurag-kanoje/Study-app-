@@ -2,29 +2,24 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { themeConfig } from '@/app/styles/theme';
 import {
   Home,
   Book,
   MessageSquare,
   Brain,
   User,
-  Calendar,
-  Users,
-  Award,
-  Settings,
-  BarChart,
   type LucideIcon,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { type Database } from '@/app/types/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import React from 'react';
 
 interface NavItem {
   icon: LucideIcon;
   label: string;
   path: string;
-  roles?: ('student' | 'parent' | 'teacher')[];
   badge?: number;
+  role?: string;
 }
 
 const navItems: NavItem[] = [
@@ -37,47 +32,16 @@ const navItems: NavItem[] = [
     icon: Book,
     label: 'Notes',
     path: '/notes',
-    roles: ['student', 'teacher'],
   },
   {
     icon: MessageSquare,
     label: 'AI Chat',
     path: '/ai-chat',
-    roles: ['student', 'teacher'],
   },
   {
     icon: Brain,
     label: 'Quiz',
     path: '/quiz',
-    roles: ['student'],
-  },
-  {
-    icon: Calendar,
-    label: 'Planner',
-    path: '/planner',
-    roles: ['student', 'teacher'],
-  },
-  {
-    icon: Users,
-    label: 'Study Groups',
-    path: '/study-groups',
-    roles: ['student', 'teacher'],
-  },
-  {
-    icon: Award,
-    label: 'Progress',
-    path: '/progress',
-  },
-  {
-    icon: BarChart,
-    label: 'Analytics',
-    path: '/analytics',
-    roles: ['parent', 'teacher'],
-  },
-  {
-    icon: Settings,
-    label: 'Settings',
-    path: '/settings',
   },
   {
     icon: User,
@@ -86,88 +50,73 @@ const navItems: NavItem[] = [
   },
 ];
 
-interface SideNavProps {
-  className?: string;
-}
-
-export function SideNav({ className }: SideNavProps) {
+export function SideNav({ className }: { className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const supabase = createClientComponentClient<Database>();
+  const { session, loading, error } = useAuth();
 
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile) {
-          setUserRole(profile.role);
-        }
-      }
-    };
+  if (loading) {
+    return (
+      <div className={cn(
+        'fixed left-0 top-0 h-full w-64 bg-background/80 backdrop-blur-lg',
+        className
+      )}>
+        <div className="flex h-full items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      </div>
+    );
+  }
 
-    fetchUserRole();
-  }, [supabase]);
+  if (error) {
+    return null;
+  }
 
-  const filteredNavItems = navItems.filter(item => 
-    !item.roles || item.roles.includes(userRole as any)
-  );
+  if (!session) {
+    return null;
+  }
 
   return (
     <nav className={cn(
-      'w-64 border-r bg-background/80 backdrop-blur-lg',
-      'flex flex-col gap-2 p-4',
+      'fixed left-0 top-0 h-full w-64 border-r bg-background/80 backdrop-blur-lg',
       className
     )}>
-      <div className="flex items-center gap-2 px-2 py-4">
-        <div className="h-8 w-8 rounded-full bg-primary" />
-        <span className="text-lg font-semibold">StudyBuddy</span>
-      </div>
+      <div className="flex h-full flex-col">
+        <div className="flex flex-1 flex-col">
+          <div className="flex flex-col space-y-1">
+            {navItems.map((item) => {
+              const isActive = pathname.startsWith(item.path);
+              const isDisabled = item.role && session.user?.role !== item.role;
 
-      <div className="flex flex-1 flex-col gap-1">
-        {filteredNavItems.map((item) => {
-          const isActive = pathname.startsWith(item.path);
-          return (
-            <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
-              className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
-                'transition-colors duration-200',
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
-              {item.badge && (
-                <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-auto">
-        <div className="rounded-md border bg-card p-4">
-          <div className="mb-2 text-sm font-medium">Study Streak</div>
-          <div className="flex items-center gap-2">
-            <div className="text-2xl font-bold text-primary">7</div>
-            <div className="text-sm text-muted-foreground">days</div>
-            <Award className="ml-auto h-5 w-5 text-primary" />
-          </div>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-accent">
-            <div className="h-full w-3/4 bg-primary transition-all duration-500" />
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => router.push(item.path)}
+                  disabled={Boolean(isDisabled)}
+                  className={cn(
+                    'relative flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                    isDisabled ? 'opacity-50 cursor-not-allowed' : '',
+                    isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  )}
+                >
+                  {React.createElement(item.icon, {
+                    className: cn(
+                      'h-5 w-5',
+                      isActive && 'animate-bounce'
+                    ),
+                  })}
+                  <span>{item.label}</span>
+                  {item.badge && !isDisabled && (
+                    <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-medium text-white">
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { ImageUploader } from '../common/ImageUploader'
 import { useToast } from '@/app/components/ui/use-toast'
-import { Button } from '@/app/components/ui/button'
+import { Button } from '@/app/components/ui/Button'
 import { processWithOCR, detectSubjects, calculateConfidence } from '@/lib/ai/ocr'
 import type { AIAnalysisResult } from '@/types'
 

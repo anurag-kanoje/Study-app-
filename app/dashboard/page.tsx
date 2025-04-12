@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/Card';
+import { Button } from '@/app/components/ui/Button';
 import { Award, BookOpen, Brain, Clock, Target, Users } from 'lucide-react';
 
 export default function DashboardPage() {

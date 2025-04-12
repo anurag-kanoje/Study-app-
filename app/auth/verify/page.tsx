@@ -1,7 +1,7 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card"
-import { Button } from "@/app/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/Card"
+import { Button } from "@/app/components/ui/Button"
 import { ModeToggle } from "@/app/components/mode-toggle"
 import { Mail, ArrowLeft } from "lucide-react"
 import Link from "next/link"

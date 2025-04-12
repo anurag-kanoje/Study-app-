@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { MessageSquare, X, Minimize2, Maximize2 } from 'lucide-react'
-import { Button } from '@/app/components/ui/button'
+import { Button } from '@/app/components/ui/Button'
 
 type Message = {
   role: 'user' | 'assistant';
