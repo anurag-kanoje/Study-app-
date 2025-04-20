@@ -1,54 +1,60 @@
 /** @type {import('@expo/config').ExpoConfig} */
 module.exports = {
-  name: 'StudyBuddy',
-  slug: 'studybuddy',
-  version: '1.0.0',
-  orientation: 'portrait',
-  icon: './assets/icon.png',
-  userInterfaceStyle: 'automatic',
-  splash: {
-    image: './assets/splash.png',
-    resizeMode: 'contain',
-    backgroundColor: '#ffffff',
-  },
-  assetBundlePatterns: [
-    '**/*',
-  ],
+  name: "StudyBuddy",
+  slug: "studybuddy",
+  version: "1.0.0",
+  orientation: "portrait",
+  userInterfaceStyle: "automatic",
+  assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.studybuddy.app',
+    bundleIdentifier: "com.studybuddy.app",
+    buildNumber: "1"
   },
   android: {
+    package: "com.studybuddy.app",
+    versionCode: 1,
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#ffffff',
+      backgroundColor: "#ffffff"
     },
-    package: 'com.studybuddy.app',
-  },
-  web: {
-    favicon: './assets/favicon.png',
-    bundler: 'metro',
+    permissions: [
+      "CAMERA",
+      "READ_EXTERNAL_STORAGE",
+      "WRITE_EXTERNAL_STORAGE",
+      "NOTIFICATIONS"
+    ]
   },
   plugins: [
-    'expo-router',
+    "expo-router",
+    "expo-camera",
+    "expo-document-picker",
+    "expo-file-system",
+    "expo-image-picker",
+    "expo-notifications",
     [
-      'expo-camera',
+      "expo-build-properties",
       {
-        cameraPermission: 'Allow StudyBuddy to access your camera to scan documents and take photos.',
-      },
-    ],
-    'expo-document-picker',
-    'expo-file-system',
-    'expo-image-picker',
-    'expo-notifications',
+        "android": {
+          "compileSdkVersion": 34,
+          "targetSdkVersion": 34,
+          "buildToolsVersion": "34.0.0"
+        }
+      }
+    ]
   ],
   extra: {
     eas: {
-      projectId: 'c41d94cd-cbfe-4099-a711-06f15abad7b3'
+      projectId: "c41d94cd-cbfe-4099-a711-06f15abad7b3"
     }
   },
-  scheme: 'studybuddy',
+  scheme: "studybuddy",
   experiments: {
     tsconfigPaths: true
   },
+  updates: {
+    url: "https://u.expo.dev/c41d94cd-cbfe-4099-a711-06f15abad7b3"
+  },
+  runtimeVersion: {
+    policy: "sdkVersion"
+  }
 };

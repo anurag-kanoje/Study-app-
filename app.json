@@ -53,7 +53,13 @@
           "sounds": ["./assets/notification.wav"]
         }
       ]
-    ]
+    ],
+    "owner": "thanos2k25",
+    "extra": {
+      "eas": {
+        "projectId": "77535ab2-8f68-48fc-add3-49d837e7e6b4"
+      }
+    }
   }
 }
 
