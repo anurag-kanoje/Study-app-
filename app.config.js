@@ -5,7 +5,7 @@ module.exports = {
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
-  userInterfaceStyle: 'light',
+  userInterfaceStyle: 'automatic',
   splash: {
     image: './assets/splash.png',
     resizeMode: 'contain',
@@ -15,29 +15,47 @@ module.exports = {
     '**/*',
   ],
   ios: {
-    supportsTablet: true,
+    bundleIdentifier: 'com.thanos2k25.studybuddy',
   },
   android: {
+    package: 'com.thanos2k25.studybuddy',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
+    versionCode: 1,
+    permissions: [
+      "CAMERA",
+      "READ_EXTERNAL_STORAGE",
+      "WRITE_EXTERNAL_STORAGE",
+      "RECORD_AUDIO",
+      "VIBRATE"
+    ]
   },
   web: {
-    favicon: './assets/favicon.png',
+    favicon: './assets/icon.png',
+    bundler: 'metro',
   },
   plugins: [
+    'expo-router',
     [
-      'expo-router',
+      'expo-camera',
       {
-        origin: 'https://your-domain.com',
+        cameraPermission: 'Allow StudyBuddy to access your camera to scan documents and take photos.',
       },
     ],
-    'expo-splash-screen',
+    'expo-document-picker',
+    'expo-file-system',
+    'expo-image-picker',
+    'expo-notifications',
   ],
   extra: {
     eas: {
-      projectId: 'your-project-id',
-    },
+      projectId: '6a0bb491-e28d-48aa-93be-e6ddcd8c3bc6'
+    }
+  },
+  scheme: 'studybuddy',
+  experiments: {
+    tsconfigPaths: true
   },
 };
