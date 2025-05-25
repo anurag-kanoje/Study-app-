@@ -15,10 +15,8 @@
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk",
         "gradleCommand": ":app:assembleRelease",
-        "withoutCredentials": true,
-        "image": "ubuntu-22.04-jdk-17-ndk-r25b"
+        "buildType": "apk"
       }
     },
     "test": {

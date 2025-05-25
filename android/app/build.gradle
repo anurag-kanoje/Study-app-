@@ -83,9 +83,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.thanos2k25.studybuddy'
+    namespace 'com.studybuddy.app'
     defaultConfig {
-        applicationId 'com.thanos2k25.studybuddy'
+        applicationId 'com.studybuddy.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
