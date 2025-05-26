@@ -46,17 +46,14 @@ module.exports = {
       }
     ]
   ],
-  extra: {
-    eas: {
-      projectId: "c41d94cd-cbfe-4099-a711-06f15abad7b3"
-    }
-  },
   scheme: "studybuddy",
   experiments: {
     tsconfigPaths: true
   },
-  updates: {
-    url: "https://u.expo.dev/c41d94cd-cbfe-4099-a711-06f15abad7b3"
+  extra: {
+    eas: {
+      projectId: "6a0bb491-e28d-48aa-93be-e6ddcd8c3bc6"
+    }
   },
   runtimeVersion: {
     policy: "sdkVersion"
