@@ -17,13 +17,7 @@ module.exports = {
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#ffffff"
-    },
-    permissions: [
-      "CAMERA",
-      "READ_EXTERNAL_STORAGE",
-      "WRITE_EXTERNAL_STORAGE",
-      "NOTIFICATIONS"
-    ]
+    }
   },
   web: {
     favicon: './assets/icon.png',
@@ -35,21 +29,7 @@ module.exports = {
     "expo-document-picker",
     "expo-file-system",
     "expo-image-picker",
-    "expo-notifications",
-    [
-      "expo-build-properties",
-      {
-        "android": {
-          "compileSdkVersion": 34,
-          "targetSdkVersion": 34,
-          "buildToolsVersion": "34.0.0",
-          "kotlinVersion": "1.8.0",
-          "enableProguardInReleaseBuilds": true,
-          "enableShrinkResources": true,
-          "enableR8": true
-        }
-      }
-    ]
+    "expo-notifications"
   ],
   scheme: "studybuddy",
   experiments: {
@@ -59,8 +39,5 @@ module.exports = {
     eas: {
       projectId: "6a0bb491-e28d-48aa-93be-e6ddcd8c3bc6"
     }
-  },
-  runtimeVersion: {
-    policy: "sdkVersion"
   }
 };
