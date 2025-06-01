@@ -7,7 +7,7 @@ $androidPaths = @(
     "$androidHome\platform-tools",
     "$androidHome\tools",
     "$androidHome\tools\bin",
-    "$androidHome\build-tools\34.0.0"
+    "$androidHome\build-tools\33.0.0"  # Using a more common version
 )
 
 # Get current PATH
@@ -15,6 +15,10 @@ $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
 
 # Add Android paths to PATH if they don't exist
 foreach ($path in $androidPaths) {
+    if (-not (Test-Path $path)) {
+        Write-Host "Warning: Path $path does not exist. Please install Android Studio and the Android SDK."
+        continue
+    }
     if (-not $currentPath.Contains($path)) {
         $currentPath = "$currentPath;$path"
     }
