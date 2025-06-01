@@ -15,6 +15,7 @@ module.exports = {
     package: "com.studybuddy.app",
     versionCode: 1,
     adaptiveIcon: {
+      foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#ffffff"
     },
     permissions: [
@@ -41,7 +42,8 @@ module.exports = {
         "android": {
           "compileSdkVersion": 34,
           "targetSdkVersion": 34,
-          "buildToolsVersion": "34.0.0"
+          "buildToolsVersion": "34.0.0",
+          "kotlinVersion": "1.8.0"
         }
       }
     ]
