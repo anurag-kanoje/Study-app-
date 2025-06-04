@@ -97,31 +97,46 @@ export default function RootLayout({ children }: RootLayoutProps) {
 }
 
 function ErrorBoundary({ children }: { children: React.ReactNode }) {
-  const [hasError, setHasError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (hasError) {
-      console.error('Error in ErrorBoundary:', error);
-    }
-  }, [hasError, error]);
+    const handleError = (event: ErrorEvent) => {
+      setError(new Error(event.message));
+    };
 
-  if (hasError) {
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-4">Internal Server Error</h2>
-          <p className="text-muted-foreground">Something went wrong. Please try refreshing the page.</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80"
-          >
-            Refresh Page
-          </button>
+        <div className="text-center space-y-4 max-w-md">
+          <div className="text-red-500">
+            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-semibold">Something went wrong</h2>
+          <p className="text-muted-foreground">{error.message}</p>
+          <div className="space-x-4">
+            <button
+              onClick={() => setError(null)}
+              className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => window.location.href = '/'}
+              className="inline-flex items-center rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+            >
+              Go Home
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  return children;
+  return <>{children}</>;
 }

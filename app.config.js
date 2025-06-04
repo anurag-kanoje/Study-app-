@@ -1,43 +1,43 @@
 /** @type {import('@expo/config').ExpoConfig} */
 module.exports = {
-  name: 'StudyBuddy',
-  slug: 'studybuddy',
-  version: '1.0.0',
-  orientation: 'portrait',
-  icon: './assets/icon.png',
-  userInterfaceStyle: 'light',
-  splash: {
-    image: './assets/splash.png',
-    resizeMode: 'contain',
-    backgroundColor: '#ffffff',
-  },
-  assetBundlePatterns: [
-    '**/*',
-  ],
+  name: "StudyBuddy",
+  slug: "studybuddy",
+  version: "1.0.0",
+  orientation: "portrait",
+  userInterfaceStyle: "automatic",
+  assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
+    bundleIdentifier: "com.studybuddy.app",
+    buildNumber: "1"
   },
   android: {
+    package: "com.studybuddy.app",
+    versionCode: 1,
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#ffffff',
-    },
+      foregroundImage: "./assets/adaptive-icon.png",
+      backgroundColor: "#ffffff"
+    }
   },
   web: {
-    favicon: './assets/favicon.png',
+    favicon: './assets/icon.png',
+    bundler: 'metro'
   },
   plugins: [
-    [
-      'expo-router',
-      {
-        origin: 'https://your-domain.com',
-      },
-    ],
-    'expo-splash-screen',
+    "expo-router",
+    "expo-camera",
+    "expo-document-picker",
+    "expo-file-system",
+    "expo-image-picker",
+    "expo-notifications"
   ],
+  scheme: "studybuddy",
+  experiments: {
+    tsconfigPaths: true
+  },
   extra: {
     eas: {
-      projectId: 'your-project-id',
-    },
-  },
+      projectId: "6a0bb491-e28d-48aa-93be-e6ddcd8c3bc6"
+    }
+  }
 };

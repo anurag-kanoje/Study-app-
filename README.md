@@ -13,6 +13,28 @@ StudyBuddy is a modern study application that leverages AI to help students lear
 - 🌙 Dark/Light Mode
 - 📱 Responsive Design
 
+### AI Video Generator (New!)
+Transform your study topics into engaging educational videos using advanced AI technology:
+
+- **Smart Script Generation**: Uses GPT-4 to create concise, educational scripts from your topics
+- **AI Video Creation**: Converts scripts into high-quality videos using Stable Video Diffusion
+- **Interactive UI**: Modern interface with progress tracking and video preview
+- **Local Storage**: Automatically saves generated videos for offline access
+
+#### How to Use the Video Generator:
+1. Navigate to the Video Generator screen
+2. Enter your study topic or concept
+3. Click "Generate Video"
+4. View the generated script and video
+5. Play the video using the built-in player
+
+#### Technical Details:
+- Uses OpenAI's GPT-4 for intelligent script generation
+- Leverages Stability AI's Stable Video Diffusion for video creation
+- Implements React Native Video for smooth playback
+- Includes progress tracking and error handling
+- Optimized for mobile performance
+
 ## Prerequisites
 
 - Node.js 18.x or later
