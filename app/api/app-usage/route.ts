@@ -73,38 +73,23 @@ export async function GET(request: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const url = new URL(request.url);
-    const startDate = url.searchParams.get('startDate');
-    const endDate = url.searchParams.get('endDate');
-    const studentId = url.searchParams.get('studentId') || user.id;
-
-    // Verify parent relationship if requesting student data
-    if (studentId !== user.id) {
-      const { data: student } = await supabase
-        .from('auth.users')
-        .select('parent_id')
-        .eq('id', studentId)
-        .single();
-
-      if (!student || student.parent_id !== user.id) {
-        return new NextResponse('Unauthorized', { status: 401 });
-      }
-    }
+    const { searchParams } = new URL(request.url);
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
 
     let query = supabase
       .from('app_usage')
       .select('*')
-      .eq('user_id', studentId)
-      .order('start_time', { ascending: false });
+      .eq('user_id', user.id);
 
     if (startDate) {
       query = query.gte('start_time', startDate);
     }
     if (endDate) {
-      query = query.lte('start_time', endDate);
+      query = query.lte('end_time', endDate);
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query.order('start_time', { ascending: false });
 
     if (error) throw error;
 

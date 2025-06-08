@@ -227,3 +227,31 @@
   transform: translateX(100%) rotate(5deg);
 }
 
+.visualization-form {
+  @apply space-y-4;
+}
+
+.form-group {
+  @apply space-y-2;
+}
+
+.form-control {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.btn {
+  @apply px-4 py-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary {
+  @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+}
+
+.chart-container {
+  @apply w-full h-full min-h-[400px];
+}
+
+.chart-title {
+  @apply text-lg font-semibold mb-4 text-center;
+}
+

@@ -3,6 +3,57 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 
+export async function GET(
+  request: Request,
+  { params }: { params: { groupId: string } }
+) {
+  try {
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    // Check if user is a member of the group
+    const membership = await prisma.studyGroupMember.findFirst({
+      where: {
+        group_id: params.groupId,
+        user_id: session.user.id,
+      },
+    });
+
+    if (!membership) {
+      return new NextResponse('Not a member of this group', { status: 403 });
+    }
+
+    // Get all members
+    const members = await prisma.studyGroupMember.findMany({
+      where: {
+        group_id: params.groupId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            full_name: true,
+            avatar_url: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        created_at: 'asc',
+      },
+    });
+
+    return NextResponse.json(members);
+  } catch (error) {
+    console.error('[STUDY_GROUP_MEMBERS]', error);
+    return new NextResponse('Internal error', { status: 500 });
+  }
+}
+
 export async function POST(
   request: Request,
   { params }: { params: { groupId: string } }
@@ -15,47 +66,41 @@ export async function POST(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { email } = await request.json();
-
-    if (!email) {
-      return new NextResponse('Missing email', { status: 400 });
-    }
-
-    // Check if user is an admin or owner of the group
+    // Check if user is admin or owner
     const membership = await prisma.studyGroupMember.findFirst({
       where: {
         group_id: params.groupId,
         user_id: session.user.id,
-        role: {
-          in: ['OWNER', 'ADMIN'],
-        },
+        role: { in: ['OWNER', 'ADMIN'] },
       },
     });
 
     if (!membership) {
-      return new NextResponse('Not authorized to invite members', { status: 403 });
+      return new NextResponse('Not authorized to add members', { status: 403 });
     }
 
-    // Find user by email
-    const { data: userData } = await supabase
+    const { email } = await request.json();
+
+    // Get user data from Supabase
+    const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('id')
+      .select('id, full_name, avatar_url, email')
       .eq('email', email)
       .single();
 
-    if (!userData) {
+    if (userError || !userData) {
       return new NextResponse('User not found', { status: 404 });
     }
 
     // Check if user is already a member
-    const existingMembership = await prisma.studyGroupMember.findFirst({
+    const existingMember = await prisma.studyGroupMember.findFirst({
       where: {
         group_id: params.groupId,
         user_id: userData.id,
       },
     });
 
-    if (existingMembership) {
+    if (existingMember) {
       return new NextResponse('User is already a member', { status: 400 });
     }
 
@@ -85,7 +130,7 @@ export async function POST(
   }
 }
 
-export async function GET(
+export async function DELETE(
   request: Request,
   { params }: { params: { groupId: string } }
 ) {
@@ -97,73 +142,50 @@ export async function GET(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Check if user is a member of the group
+    const { searchParams } = new URL(request.url);
+    const memberId = searchParams.get('memberId');
+
+    if (!memberId) {
+      return new NextResponse('Member ID is required', { status: 400 });
+    }
+
+    // Check if user is admin or owner
     const membership = await prisma.studyGroupMember.findFirst({
       where: {
         group_id: params.groupId,
         user_id: session.user.id,
+        role: { in: ['OWNER', 'ADMIN'] },
       },
     });
 
     if (!membership) {
-      return new NextResponse('Not a member of this group', { status: 403 });
+      return new NextResponse('Not authorized to remove members', { status: 403 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const skip = (page - 1) * limit;
-    const role = searchParams.get('role');
-    const search = searchParams.get('search') || '';
-
-    // Build where clause
-    const where = {
-      group_id: params.groupId,
-      ...(role ? { role } : {}),
-      ...(search ? {
-        user: {
-          OR: [
-            { full_name: { contains: search, mode: 'insensitive' } },
-            { email: { contains: search, mode: 'insensitive' } },
-          ],
+    // Don't allow removing the last owner
+    if (membership.role === 'OWNER') {
+      const ownerCount = await prisma.studyGroupMember.count({
+        where: {
+          group_id: params.groupId,
+          role: 'OWNER',
         },
-      } : {}),
-    };
+      });
 
-    // Get members with pagination
-    const [members, total] = await Promise.all([
-      prisma.studyGroupMember.findMany({
-        where,
-        orderBy: [
-          { role: 'asc' },
-          { created_at: 'desc' },
-        ],
-        skip,
-        take: limit,
-        include: {
-          user: {
-            select: {
-              id: true,
-              full_name: true,
-              email: true,
-              avatar_url: true,
-              last_seen: true,
-            },
-          },
-        },
-      }),
-      prisma.studyGroupMember.count({ where }),
-    ]);
+      if (ownerCount <= 1) {
+        return new NextResponse('Cannot remove the last owner', { status: 400 });
+      }
+    }
 
-    return NextResponse.json({
-      members,
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
+    // Remove member
+    await prisma.studyGroupMember.delete({
+      where: {
+        id: memberId,
+      },
     });
+
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('[STUDY_GROUP_MEMBERS]', error);
+    console.error('[STUDY_GROUP_MEMBERS_DELETE]', error);
     return new NextResponse('Internal error', { status: 500 });
   }
 }
@@ -241,64 +263,6 @@ export async function PUT(
     return NextResponse.json(updatedMember);
   } catch (error) {
     console.error('[STUDY_GROUP_MEMBERS_PUT]', error);
-    return new NextResponse('Internal error', { status: 500 });
-  }
-}
-
-export async function DELETE(
-  request: Request,
-  { params }: { params: { groupId: string; userId: string } }
-) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
-
-    // Check if user is an admin or owner of the group
-    const membership = await prisma.studyGroupMember.findFirst({
-      where: {
-        group_id: params.groupId,
-        user_id: session.user.id,
-        role: {
-          in: ['OWNER', 'ADMIN'],
-        },
-      },
-    });
-
-    if (!membership) {
-      return new NextResponse('Not authorized to remove members', { status: 403 });
-    }
-
-    // Check if target member exists
-    const targetMember = await prisma.studyGroupMember.findFirst({
-      where: {
-        group_id: params.groupId,
-        user_id: params.userId,
-      },
-    });
-
-    if (!targetMember) {
-      return new NextResponse('Member not found', { status: 404 });
-    }
-
-    // Cannot remove owner
-    if (targetMember.role === 'OWNER') {
-      return new NextResponse('Cannot remove owner', { status: 403 });
-    }
-
-    // Remove member
-    await prisma.studyGroupMember.delete({
-      where: {
-        id: targetMember.id,
-      },
-    });
-
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    console.error('[STUDY_GROUP_MEMBERS_DELETE]', error);
     return new NextResponse('Internal error', { status: 500 });
   }
 } 

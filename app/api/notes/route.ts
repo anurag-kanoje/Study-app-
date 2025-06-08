@@ -51,17 +51,16 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { id, title, content, userId } = await request.json()
+    const { id, title, content } = await request.json()
 
-    if (!userId || !id) {
-      return NextResponse.json({ error: "User ID and Note ID are required" }, { status: 400 })
+    if (!id) {
+      return NextResponse.json({ error: "Note ID is required" }, { status: 400 })
     }
 
     const { data, error } = await supabase
       .from("notes")
-      .update({ title, content })
+      .update({ title, content, updated_at: new Date().toISOString() })
       .eq("id", id)
-      .eq("user_id", userId)
       .select()
 
     if (error) {
@@ -78,13 +77,15 @@ export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")
-    const userId = searchParams.get("userId")
 
-    if (!userId || !id) {
-      return NextResponse.json({ error: "User ID and Note ID are required" }, { status: 400 })
+    if (!id) {
+      return NextResponse.json({ error: "Note ID is required" }, { status: 400 })
     }
 
-    const { error } = await supabase.from("notes").delete().eq("id", id).eq("user_id", userId)
+    const { error } = await supabase
+      .from("notes")
+      .delete()
+      .eq("id", id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 })
