@@ -1,149 +1,122 @@
-<<<<<<< HEAD
-import * as React from 'react'
+"use client"
+
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import {
-  Book,
-  FileText,
-  Settings,
-  Users,
+import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { Button } from '../ui/Button'
+import { 
   Menu,
-  X
+  X,
+  BookOpen,
+  Brain,
+  FileText,
+  Users,
+  Calendar,
+  Trophy,
+  Settings,
+  Bell
 } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
 
-interface NavigationProps {
+const navigationItems = [
+  { name: 'Smart Notes', href: '/notes', icon: BookOpen },
+  { name: 'AI Chatbot', href: '/ai-chat', icon: Brain },
+  { name: 'File Analysis', href: '/file-analysis', icon: FileText },
+  { name: 'Peer Pods', href: '/peer-pods', icon: Users },
+  { name: 'Study Planner', href: '/planner', icon: Calendar },
+  { name: 'Progress', href: '/progress', icon: Trophy },
+  { name: 'Settings', href: '/settings', icon: Settings },
+]
+
+export function Navigation({ 
+  isOpen, 
+  onToggle,
+  isMobile 
+}: { 
   isOpen: boolean
   onToggle: () => void
   isMobile: boolean
-}
-
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: FileText },
-  { href: '/notes', label: 'Notes', icon: Book },
-  { href: '/study-groups', label: 'Study Groups', icon: Users },
-  { href: '/settings', label: 'Settings', icon: Settings },
-]
-
-export function Navigation({ isOpen, onToggle, isMobile }: NavigationProps) {
+}) {
   const pathname = usePathname()
+
+  if (isMobile) {
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border md:hidden">
+        <div className="flex justify-around items-center h-16">
+          {navigationItems.slice(0, 4).map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex flex-col items-center justify-center w-full h-full
+                  ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}
+                  transition-colors duration-200`}
+              >
+                <item.icon className="w-6 h-6" />
+                <span className="text-xs mt-1">{item.name}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+    )
+  }
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="fixed top-4 left-4 md:hidden z-50"
+      <button
         onClick={onToggle}
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-background border border-border
+          hover:bg-accent transition-colors duration-200 md:hidden"
       >
-        {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-      </Button>
+        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
 
-      <nav
-        className={cn(
-          'fixed top-0 left-0 h-full bg-white border-r w-64 transition-transform duration-300 z-40',
-          !isOpen && '-translate-x-full',
-          isMobile && 'shadow-xl'
-        )}
-      >
-        <div className="p-6">
-          <h1 className="text-2xl font-bold">Study App</h1>
-        </div>
+      <nav className={`
+        fixed top-0 left-0 h-full bg-background border-r border-border
+        transition-transform duration-300 ease-in-out z-40
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0 md:w-64
+      `}>
+        <div className="flex flex-col h-full">
+          <div className="p-4 border-b border-border">
+            <h1 className="text-xl font-bold">StudyBuddy</h1>
+          </div>
 
-        <div className="px-4">
-          {navItems.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
-                pathname === href
-                  ? 'bg-primary text-white'
-                  : 'hover:bg-gray-100'
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {label}
-            </Link>
-          ))}
+          <div className="flex-1 overflow-y-auto py-4">
+            <div className="space-y-1 px-2">
+              {navigationItems.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`
+                      flex items-center space-x-3 px-3 py-2 rounded-lg
+                      ${isActive 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                      }
+                      transition-colors duration-200
+                    `}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.name}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="p-4 border-t border-border">
+            <Button variant="outline" className="w-full justify-start">
+              <Bell className="w-5 h-5 mr-2" />
+              Notifications
+            </Button>
+          </div>
         </div>
       </nav>
     </>
   )
-} 
-=======
-import * as React from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import {
-  Book,
-  FileText,
-  Settings,
-  Users,
-  Menu,
-  X
-} from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
-
-interface NavigationProps {
-  isOpen: boolean
-  onToggle: () => void
-  isMobile: boolean
 }
-
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: FileText },
-  { href: '/notes', label: 'Notes', icon: Book },
-  { href: '/study-groups', label: 'Study Groups', icon: Users },
-  { href: '/settings', label: 'Settings', icon: Settings },
-]
-
-export function Navigation({ isOpen, onToggle, isMobile }: NavigationProps) {
-  const pathname = usePathname()
-
-  return (
-    <>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="fixed top-4 left-4 md:hidden z-50"
-        onClick={onToggle}
-      >
-        {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-      </Button>
-
-      <nav
-        className={cn(
-          'fixed top-0 left-0 h-full bg-white border-r w-64 transition-transform duration-300 z-40',
-          !isOpen && '-translate-x-full',
-          isMobile && 'shadow-xl'
-        )}
-      >
-        <div className="p-6">
-          <h1 className="text-2xl font-bold">Study App</h1>
-        </div>
-
-        <div className="px-4">
-          {navItems.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
-                pathname === href
-                  ? 'bg-primary text-white'
-                  : 'hover:bg-gray-100'
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {label}
-            </Link>
-          ))}
-        </div>
-      </nav>
-    </>
-  )
-} 
->>>>>>> c53144d (Initial commit)

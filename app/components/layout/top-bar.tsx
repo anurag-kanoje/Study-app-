@@ -8,6 +8,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { type Database } from '@/app/types/supabase';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
+import { Button } from '../ui/Button';
+import { Notifications } from '../common/Notifications';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/DropdownMenu';
 
 interface Notification {
   id: string;
@@ -97,129 +108,54 @@ export function TopBar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-lg">
-      <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="inline-flex items-center justify-center rounded-md p-2.5 text-muted-foreground hover:text-foreground md:hidden"
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
-          <h1 className="text-xl font-semibold">StudyBuddy</h1>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 flex">
+          <a className="mr-6 flex items-center space-x-2" href="/">
+            <span className="font-bold">StudyBuddy</span>
+          </a>
         </div>
 
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleTheme}
-            className={cn(
-              'inline-flex h-10 w-10 items-center justify-center rounded-md',
-              'hover:bg-accent hover:text-accent-foreground',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-            )}
-          >
-            <Sun className="h-6 w-6 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-6 w-6 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </button>
-
-          <div className="relative">
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className={cn(
-                'inline-flex h-10 w-10 items-center justify-center rounded-md',
-                'hover:bg-accent hover:text-accent-foreground',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-              )}
-            >
-              <Bell className="h-6 w-6" />
-              {unreadCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {showNotifications && (
-              <div className={cn(
-                'absolute right-0 mt-2 w-80 rounded-md border bg-popover p-4 shadow-md',
-                'animate-in fade-in-0 zoom-in-95',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-              )}>
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold">Notifications</h2>
-                  {unreadCount > 0 && (
-                    <button
-                      onClick={() => {
-                        notifications.forEach((n) => !n.read && markAsRead(n.id));
-                      }}
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      Mark all as read
-                    </button>
-                  )}
-                </div>
-                <div className="space-y-4">
-                  {notifications.length > 0 ? (
-                    notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={cn(
-                          'rounded-md p-3 text-sm',
-                          !notification.read && 'bg-accent',
-                          'transition-colors duration-200'
-                        )}
-                        onClick={() => !notification.read && markAsRead(notification.id)}
-                      >
-                        <div className="mb-1 font-medium">{notification.title}</div>
-                        <p className="text-muted-foreground">{notification.message}</p>
-                        <time className="mt-1 block text-xs text-muted-foreground">
-                          {new Date(notification.createdAt).toLocaleString()}
-                        </time>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-center text-sm text-muted-foreground">
-                      No notifications yet
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <div className="flex items-center space-x-2">
+            <Notifications />
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={session?.user?.avatar_url} alt={session?.user?.name} />
+                    <AvatarFallback>
+                      {session?.user?.name?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{session?.user?.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {session?.user?.email}
                     </p>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="relative">
-            <button
-              className={cn(
-                'inline-flex h-10 w-10 items-center justify-center rounded-md',
-                'hover:bg-accent hover:text-accent-foreground',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-              )}
-            >
-              <User className="h-6 w-6" />
-            </button>
-
-            <div className="absolute right-0 mt-2 w-48 rounded-md border bg-popover p-2 shadow-md">
-              <div className="space-y-1">
-                <div className="flex items-center px-3 py-2">
-                  <User className="h-5 w-5 mr-2" />
-                  <span className="text-sm font-medium">{session?.user?.email}</span>
-                </div>
-                <button
-                  onClick={() => {
-                    supabase.auth.signOut();
-                    router.push('/login');
-                  }}
-                  className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                >
-                  Sign out
-                </button>
-              </div>
-            </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => window.location.href = '/profile'}>
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => {
+                  supabase.auth.signOut();
+                  router.push('/login');
+                }}>
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
