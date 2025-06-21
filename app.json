@@ -44,14 +44,6 @@
         {
           "iCloudContainerEnvironment": "Production"
         }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#ffffff",
-          "sounds": ["./assets/notification.wav"]
-        }
       ]
     ],
     "owner": "thanos2k25",
