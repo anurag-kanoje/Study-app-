@@ -148,7 +148,12 @@ const Button: React.FC<ButtonProps> = ({
         <>
           {leftIcon && <React.Fragment>{leftIcon}</React.Fragment>}
           {typeof children === "string" ? (
-            <Text style={[getTextStyles(), textStyle, leftIcon && { marginLeft: 8 }, rightIcon && { marginRight: 8 }]}>
+            <Text style={[
+              getTextStyles(), 
+              textStyle, 
+              leftIcon ? { marginLeft: 8 } : undefined, 
+              rightIcon ? { marginRight: 8 } : undefined
+            ]}>
               {children}
             </Text>
           ) : (

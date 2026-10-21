@@ -1,22 +1,29 @@
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 
-// Initialize Supabase client
-const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || '';
-const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || '';
+const supabaseUrl =
+  process.env.EXPO_PUBLIC_SUPABASE_URL ?? Constants.expoConfig?.extra?.supabaseUrl;
+const supabaseAnonKey =
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? Constants.expoConfig?.extra?.supabaseAnonKey;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  throw new Error(
+    'Missing Supabase configuration. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env (see .env.example).'
+  );
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export type UserRole = 'student' | 'teacher' | 'parent';
 
 // Database types
 export type Profile = {
   id: string;
   username: string;
+  email: string | null;
   full_name: string | null;
   avatar_url: string | null;
+  role?: UserRole;
   created_at: string;
   updated_at: string;
 };
@@ -67,4 +74,4 @@ export type VideoGeneration = {
   status: 'pending' | 'completed' | 'failed';
   created_at: string;
   updated_at: string;
-}; 
+};

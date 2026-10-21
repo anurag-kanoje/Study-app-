@@ -3,11 +3,13 @@ import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Card, Button, TextInput, Portal, Modal, ActivityIndicator, Chip } from 'react-native-paper';
 import { supabaseService } from '../services/supabaseService';
 import { useAuth } from '../contexts/AuthContext';
-import type { StudyMaterial } from '../lib/supabase';
+import type { StudyMaterial, Tag } from '../lib/supabase';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../types/navigation';
 
 export const StudyMaterialsScreen = () => {
-  const [materials, setMaterials] = useState<StudyMaterial[]>([]);
+  const [materials, setMaterials] = useState<(StudyMaterial & { study_material_tags: { tag: Tag }[] })[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [newMaterialTitle, setNewMaterialTitle] = useState('');
@@ -16,7 +18,7 @@ export const StudyMaterialsScreen = () => {
   const [newMaterialTags, setNewMaterialTags] = useState('');
   const [creatingMaterial, setCreatingMaterial] = useState(false);
   const { user } = useAuth();
-  const route = useRoute();
+  const route = useRoute<RouteProp<RootStackParamList, 'StudyMaterials'>>();
   const navigation = useNavigation();
   const groupId = route.params?.groupId;
 
@@ -69,11 +71,13 @@ export const StudyMaterialsScreen = () => {
         description: newMaterialDescription,
         content: newMaterialContent,
         created_by: user.id,
-        group_id: groupId,
-        tags: newMaterialTags.split(',').map(tag => tag.trim()).filter(Boolean)
-      });
+        group_id: groupId
+      }, newMaterialTags.split(',').map(tag => tag.trim()).filter(Boolean));
 
-      setMaterials(prev => [newMaterial, ...prev]);
+      setMaterials(prev => [{
+        ...newMaterial,
+        study_material_tags: []
+      }, ...prev]);
       setModalVisible(false);
       setNewMaterialTitle('');
       setNewMaterialDescription('');
@@ -116,9 +120,9 @@ export const StudyMaterialsScreen = () => {
               <Text style={styles.materialDescription}>{material.description}</Text>
               <Text style={styles.materialContent}>{material.content}</Text>
               <View style={styles.tagsContainer}>
-                {material.tags.map((tag, index) => (
+                {material.study_material_tags?.map((tagRelation, index) => (
                   <Chip key={index} style={styles.tag} textStyle={styles.tagText}>
-                    {tag}
+                    {tagRelation.tag.name}
                   </Chip>
                 ))}
               </View>

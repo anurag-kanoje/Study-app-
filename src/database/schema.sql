@@ -14,8 +14,10 @@ drop table if exists profiles cascade;
 create table profiles (
     id uuid references auth.users on delete cascade primary key,
     username text unique not null,
+    email text,
     full_name text,
     avatar_url text,
+    role text default 'student' check (role in ('student', 'teacher', 'parent')),
     created_at timestamp with time zone default timezone('utc'::text, now()) not null,
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

@@ -17,6 +17,7 @@ import { useTheme } from "../../context/ThemeContext"
 import TextInput from "../../components/ui/TextInput"
 import Button from "../../components/ui/Button"
 import { Mail, Lock, User } from "lucide-react-native"
+import ErrorBoundary from '../../components/ui/ErrorBoundary'
 
 type AuthStackParamList = {
   Login: undefined
@@ -93,74 +94,76 @@ const SignupScreen = () => {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.logoContainer}>
-          <Image source={require("../../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
-          <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            Sign up to get started with AI Study App
-          </Text>
-        </View>
+    <ErrorBoundary>
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: colors.background }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <View style={styles.logoContainer}>
+            <Image source={require("../../../assets/icon.png")} style={styles.logo} resizeMode="contain" />
+            <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
+            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+              Sign up to get started with AI Study App
+            </Text>
+          </View>
 
-        <View style={styles.formContainer}>
-          <TextInput
-            label="Full Name"
-            placeholder="Enter your full name"
-            value={displayName}
-            onChangeText={setDisplayName}
-            leftIcon={<User size={20} color={colors.mutedForeground} />}
-            error={errors.displayName}
-          />
+          <View style={styles.formContainer}>
+            <TextInput
+              label="Full Name"
+              placeholder="Enter your full name"
+              value={displayName}
+              onChangeText={setDisplayName}
+              leftIcon={<User size={20} color={colors.mutedForeground} />}
+              error={errors.displayName}
+            />
 
-          <TextInput
-            label="Email"
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            leftIcon={<Mail size={20} color={colors.mutedForeground} />}
-            error={errors.email}
-          />
+            <TextInput
+              label="Email"
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              leftIcon={<Mail size={20} color={colors.mutedForeground} />}
+              error={errors.email}
+            />
 
-          <TextInput
-            label="Password"
-            placeholder="Create a password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            leftIcon={<Lock size={20} color={colors.mutedForeground} />}
-            error={errors.password}
-          />
+            <TextInput
+              label="Password"
+              placeholder="Create a password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              leftIcon={<Lock size={20} color={colors.mutedForeground} />}
+              error={errors.password}
+            />
 
-          <TextInput
-            label="Confirm Password"
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            leftIcon={<Lock size={20} color={colors.mutedForeground} />}
-            error={errors.confirmPassword}
-          />
+            <TextInput
+              label="Confirm Password"
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              leftIcon={<Lock size={20} color={colors.mutedForeground} />}
+              error={errors.confirmPassword}
+            />
 
-          <Button onPress={handleSignup} isLoading={isLoading} style={styles.signupButton}>
-            Continue
-          </Button>
-        </View>
+            <Button onPress={handleSignup} isLoading={isLoading} style={styles.signupButton}>
+              Continue
+            </Button>
+          </View>
 
-        <View style={styles.footerContainer}>
-          <Text style={[styles.footerText, { color: colors.mutedForeground }]}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-            <Text style={[styles.loginText, { color: colors.primary }]}>Sign In</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <View style={styles.footerContainer}>
+            <Text style={[styles.footerText, { color: colors.mutedForeground }]}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+              <Text style={[styles.loginText, { color: colors.primary }]}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ErrorBoundary>
   )
 }
 

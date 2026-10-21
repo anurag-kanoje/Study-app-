@@ -52,6 +52,15 @@ export const HomeScreen = () => {
             </Card.Content>
           </Card>
 
+          <Card style={styles.card} onPress={() => navigation.navigate('AINotes')}>
+            <Card.Content>
+              <Text style={styles.cardTitle}>AI Notes</Text>
+              <Text style={styles.cardDescription}>
+                Scan documents and generate study notes with OCR
+              </Text>
+            </Card.Content>
+          </Card>
+
           <Card style={styles.card} onPress={() => navigation.navigate('Profile')}>
             <Card.Content>
               <Text style={styles.cardTitle}>Profile</Text>

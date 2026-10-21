@@ -3,10 +3,10 @@ import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Card, Button, TextInput, Portal, Modal, ActivityIndicator } from 'react-native-paper';
 import { supabaseService } from '../services/supabaseService';
 import { useAuth } from '../contexts/AuthContext';
-import type { StudyGroup } from '../lib/supabase';
+import type { StudyGroup, StudyGroupMember } from '../lib/supabase';
 
 export const StudyGroupsScreen = () => {
-  const [groups, setGroups] = useState<StudyGroup[]>([]);
+  const [groups, setGroups] = useState<(StudyGroup & { study_group_members: StudyGroupMember[] })[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
@@ -41,11 +41,13 @@ export const StudyGroupsScreen = () => {
       const newGroup = await supabaseService.createStudyGroup({
         name: newGroupName,
         description: newGroupDescription,
-        created_by: user.id,
-        members: [user.id]
+        created_by: user.id
       });
 
-      setGroups(prev => [newGroup, ...prev]);
+      setGroups(prev => [{
+        ...newGroup,
+        study_group_members: [{ group_id: newGroup.id, user_id: user.id, joined_at: new Date().toISOString() }]
+      }, ...prev]);
       setModalVisible(false);
       setNewGroupName('');
       setNewGroupDescription('');
@@ -99,11 +101,11 @@ export const StudyGroupsScreen = () => {
               <Text style={styles.groupName}>{group.name}</Text>
               <Text style={styles.groupDescription}>{group.description}</Text>
               <Text style={styles.memberCount}>
-                {group.members.length} member{group.members.length !== 1 ? 's' : ''}
+                {group.study_group_members?.length || 0} member{(group.study_group_members?.length || 0) !== 1 ? 's' : ''}
               </Text>
             </Card.Content>
             <Card.Actions>
-              {!group.members.includes(user?.id || '') && (
+              {!group.study_group_members?.some(member => member.user_id === user?.id) && (
                 <Button
                   mode="contained"
                   onPress={() => handleJoinGroup(group.id)}

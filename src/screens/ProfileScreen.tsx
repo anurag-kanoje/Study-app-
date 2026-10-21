@@ -25,8 +25,8 @@ export const ProfileScreen = () => {
     try {
       const data = await supabaseService.getProfile(user.id);
       setProfile(data);
-      setUsername(data.username);
-      setFullName(data.full_name);
+      setUsername(data.username || '');
+      setFullName(data.full_name || '');
     } catch (error) {
       console.error('Error loading profile:', error);
       Alert.alert('Error', 'Failed to load profile');
@@ -84,7 +84,7 @@ export const ProfileScreen = () => {
             uri: file.uri,
             type: `image/${fileExt}`,
             name: fileName,
-          });
+          } as any);
 
         if (uploadError) throw uploadError;
 

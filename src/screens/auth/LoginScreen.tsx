@@ -14,10 +14,11 @@ import {
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useTheme } from "../../context/ThemeContext"
-import { useAuth } from "../../context/AuthContext"
+import { useAuth } from "../../contexts/AuthContext"
 import TextInput from "../../components/ui/TextInput"
 import Button from "../../components/ui/Button"
 import { Mail, Lock } from "lucide-react-native"
+import ErrorBoundary from '../../components/ui/ErrorBoundary'
 
 type AuthStackParamList = {
   Login: undefined
@@ -71,60 +72,62 @@ const LoginScreen = () => {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.logoContainer}>
-          <Image source={require("../../../assets/images/logo.png")} style={styles.logo} resizeMode="contain" />
-          <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Sign in to continue to your account</Text>
-        </View>
+    <ErrorBoundary>
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: colors.background }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <View style={styles.logoContainer}>
+            <Image source={require("../../../assets/icon.png")} style={styles.logo} resizeMode="contain" />
+            <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
+            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Sign in to continue to your account</Text>
+          </View>
 
-        <View style={styles.formContainer}>
-          <TextInput
-            label="Email"
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            leftIcon={<Mail size={20} color={colors.mutedForeground} />}
-            error={errors.email}
-          />
+          <View style={styles.formContainer}>
+            <TextInput
+              label="Email"
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              leftIcon={<Mail size={20} color={colors.mutedForeground} />}
+              error={errors.email}
+            />
 
-          <TextInput
-            label="Password"
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            leftIcon={<Lock size={20} color={colors.mutedForeground} />}
-            error={errors.password}
-          />
+            <TextInput
+              label="Password"
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              leftIcon={<Lock size={20} color={colors.mutedForeground} />}
+              error={errors.password}
+            />
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate("ForgotPassword")}
-            style={styles.forgotPasswordContainer}
-          >
-            <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ForgotPassword")}
+              style={styles.forgotPasswordContainer}
+            >
+              <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</Text>
+            </TouchableOpacity>
 
-          <Button onPress={handleLogin} isLoading={isLoading} style={styles.loginButton}>
-            Sign In
-          </Button>
-        </View>
+            <Button onPress={handleLogin} isLoading={isLoading} style={styles.loginButton}>
+              Sign In
+            </Button>
+          </View>
 
-        <View style={styles.footerContainer}>
-          <Text style={[styles.footerText, { color: colors.mutedForeground }]}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-            <Text style={[styles.signupText, { color: colors.primary }]}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <View style={styles.footerContainer}>
+            <Text style={[styles.footerText, { color: colors.mutedForeground }]}>Don't have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+              <Text style={[styles.signupText, { color: colors.primary }]}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ErrorBoundary>
   )
 }
 

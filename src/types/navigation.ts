@@ -11,6 +11,7 @@ export type RootStackParamList = {
   Auth: undefined;
   Main: NavigatorScreenParams<TabParamList>;
   StudyMaterials: { groupId: string };
+  AINotes: undefined;
 };
 
 declare global {

@@ -1,14 +1,16 @@
 import React from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
-import { AuthScreen } from '../screens/AuthScreen';
+import { AuthNavigator } from './AuthNavigator';
 import { HomeScreen } from '../screens/HomeScreen';
 import { StudyGroupsScreen } from '../screens/StudyGroupsScreen';
 import { StudyMaterialsScreen } from '../screens/StudyMaterialsScreen';
 import { VideoGeneratorScreen } from '../screens/VideoGeneratorScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AINotesScreen from '../screens/ai/AINotesScreen';
 import type { RootStackParamList, TabParamList } from '../types/navigation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -68,16 +70,20 @@ const TabNavigator = () => {
 };
 
 export const AppNavigator = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!user ? (
-        <Stack.Screen name="Auth" component={AuthScreen} />
+        <Stack.Screen name="Auth" component={AuthNavigator} />
       ) : (
         <>
           <Stack.Screen name="Main" component={TabNavigator} />
@@ -89,8 +95,16 @@ export const AppNavigator = () => {
               title: 'Study Materials',
             }}
           />
+          <Stack.Screen
+            name="AINotes"
+            component={AINotesScreen}
+            options={{
+              headerShown: true,
+              title: 'AI Notes',
+            }}
+          />
         </>
       )}
     </Stack.Navigator>
   );
-}; 
+};

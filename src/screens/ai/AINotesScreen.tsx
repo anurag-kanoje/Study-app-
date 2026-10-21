@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from "react-native"
+import React, { useState, useRef } from "react"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Alert } from "react-native"
 import { useNavigation } from "@react-navigation/native"
-import { useTheme } from "../../context/ThemeContext"
+import { useTheme } from "../../context/ThemeContext.js"
 import { useToast } from "../../context/ToastContext"
-import Button from "../../components/ui/Button"
+import Button from "../../components/ui/Button.js"
 import {
   Camera,
   Image as ImageIcon,
@@ -30,9 +30,50 @@ import Animated, {
   FadeOut,
   SlideInUp,
 } from "react-native-reanimated"
-import { BottomSheetModal, BottomSheetModalProvider, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
+import ErrorBoundary from '../../components/ui/ErrorBoundary.js'
+import TODO from '../../components/ui/TODO.js'
+import Tesseract from 'tesseract.js'
 
 const { width } = Dimensions.get("window")
+
+const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models/microsoft/trocr-base-handwritten';
+const HUGGINGFACE_API_KEY = process.env.EXPO_PUBLIC_HUGGINGFACE_API_KEY || '';
+
+async function ocrWithHuggingFace(imageUri: string): Promise<string> {
+  try {
+    // Convert image to base64
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    const reader = new FileReader();
+    return new Promise((resolve, reject) => {
+      reader.onloadend = async () => {
+        const base64data = reader.result?.toString().split(',')[1];
+        if (!base64data) return resolve('');
+        const hfResponse = await fetch(HUGGINGFACE_API_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ inputs: base64data }),
+        });
+        if (!hfResponse.ok) return resolve('');
+        const data = await hfResponse.json();
+        if (Array.isArray(data) && data[0]?.generated_text) {
+          resolve(data[0].generated_text);
+        } else if (typeof data?.generated_text === 'string') {
+          resolve(data.generated_text);
+        } else {
+          resolve('');
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    return '';
+  }
+}
 
 const AINotesScreen = () => {
   const navigation = useNavigation()
@@ -44,10 +85,6 @@ const AINotesScreen = () => {
   const [extractedText, setExtractedText] = useState("")
   const [outputFormat, setOutputFormat] = useState("notes")
   const [outputText, setOutputText] = useState("")
-
-  // Bottom sheet references
-  const formatBottomSheetRef = useRef<BottomSheetModal>(null)
-  const snapPoints = ["50%"]
 
   // Animation values
   const uploadAreaHeight = useSharedValue(200)
@@ -146,56 +183,33 @@ const AINotesScreen = () => {
       showToast("Please select at least one image", "warning")
       return
     }
-
     setIsProcessing(true)
-
     try {
-      // Simulate API call for OCR and processing
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // Mock extracted text
-      const mockExtractedText = `# Biology Notes: Photosynthesis
-
-Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods with the help of chlorophyll.
-
-## Key Components:
-- Chlorophyll
-- Sunlight
-- Water
-- Carbon dioxide
-
-## Process Steps:
-1. Light absorption by chlorophyll
-2. Water molecules split into hydrogen and oxygen
-3. Carbon dioxide converted to glucose
-4. Oxygen released as byproduct
-
-## Equation:
-6CO₂ + 6H₂O + Light Energy → C₆H₁₂O₆ + 6O₂`
-
-      setExtractedText(mockExtractedText)
-
+      let allText = ''
+      for (const uri of selectedImages) {
+        // Tesseract.js OCR
+        let text = ''
+        try {
+          const result = await Tesseract.recognize(uri, 'eng')
+          text = result.data.text
+        } catch (err) {
+          text = ''
+        }
+        // If Tesseract fails or returns empty, try Hugging Face
+        if (!text && HUGGINGFACE_API_KEY) {
+          text = await ocrWithHuggingFace(uri)
+        }
+        allText += text + '\n'
+      }
+      setExtractedText(allText)
       // Generate formatted output based on selected format
       if (outputFormat === "notes") {
-        setOutputText(mockExtractedText)
+        setOutputText(allText)
       } else if (outputFormat === "flashcards") {
-        const flashcards = `Q: What is photosynthesis?
-A: The process by which green plants and some other organisms use sunlight to synthesize foods with the help of chlorophyll.
-
-Q: What are the key components of photosynthesis?
-A: Chlorophyll, sunlight, water, and carbon dioxide.
-
-Q: What is the equation for photosynthesis?
-A: 6CO₂ + 6H₂O + Light Energy → C₆H₁₂O₆ + 6O₂
-
-Q: What are the main steps in photosynthesis?
-A: 1) Light absorption by chlorophyll, 2) Water molecules split into hydrogen and oxygen, 3) Carbon dioxide converted to glucose, 4) Oxygen released as byproduct.`
+        setOutputText('Q: Extracted text\nA: ' + allText)
       } else if (outputFormat === "summary") {
-        setOutputText(
-          "Photosynthesis is the process where plants convert sunlight, water, and carbon dioxide into glucose and oxygen. It requires chlorophyll to capture light energy and occurs in two stages: light-dependent reactions and the Calvin cycle. The overall equation is 6CO₂ + 6H₂O + Light Energy → C₆H₁₂O₆ + 6O₂.",
-        )
+        setOutputText(allText.slice(0, 200) + (allText.length > 200 ? '...' : ''))
       }
-
       showToast("Processing complete", "success")
     } catch (error) {
       console.error("Error processing images:", error)
@@ -234,295 +248,175 @@ A: 1) Light absorption by chlorophyll, 2) Water molecules split into hydrogen an
     }
   }
 
-  const handleShowFormatOptions = () => {
-    formatBottomSheetRef.current?.present()
-  }
-
-  const handleSelectFormat = (format: string) => {
-    setOutputFormat(format)
-    formatBottomSheetRef.current?.dismiss()
-
-    // Regenerate output based on new format
-    if (extractedText) {
-      if (format === "notes") {
-        setOutputText(extractedText)
-      } else if (format === "flashcards") {
-        const flashcards = `Q: What is photosynthesis?
-A: The process by which green plants and some other organisms use sunlight to synthesize foods with the help of chlorophyll.
-
-Q: What are the key components of photosynthesis?
-A: Chlorophyll, sunlight, water, and carbon dioxide.
-
-Q: What is the equation for photosynthesis?
-A: 6CO₂ + 6H₂O + Light Energy → C₆H₁₂O₆ + 6O₂
-
-Q: What are the main steps in photosynthesis?
-A: 1) Light absorption by chlorophyll, 2) Water molecules split into hydrogen and oxygen, 3) Carbon dioxide converted to glucose, 4) Oxygen released as byproduct.`
-        setOutputText(flashcards)
-      } else if (format === "summary") {
-        setOutputText(
-          "Photosynthesis is the process where plants convert sunlight, water, and carbon dioxide into glucose and oxygen. It requires chlorophyll to capture light energy and occurs in two stages: light-dependent reactions and the Calvin cycle. The overall equation is 6CO₂ + 6H₂O + Light Energy → C₆H₁₂O₆ + 6O₂.",
-        )
-      }
-    }
-  }
-
-  const renderBackdrop = (props: any) => <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
-
   return (
-    <BottomSheetModalProvider>
-      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
-        {!outputText ? (
-          <>
-            <View style={styles.headerContainer}>
-              <Text style={[styles.title, { color: colors.text }]}>AI Notes from Images</Text>
-              <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-                Upload images of handwritten or printed notes to convert them into digital text
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
+      <TODO message="OCR is now integrated using Tesseract.js (pure JS, Expo-compatible). Optionally, add Hugging Face Inference API as a cloud fallback for better accuracy." />
+      <TODO message="Add your Hugging Face API key to .env as EXPO_PUBLIC_HUGGINGFACE_API_KEY for cloud OCR fallback." />
+      {!outputText ? (
+        <>
+          <View style={styles.headerContainer}>
+            <Text style={[styles.title, { color: colors.text }]}>AI Notes from Images</Text>
+            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+              Upload images of handwritten or printed notes to convert them into digital text
+            </Text>
+          </View>
+
+          <Animated.View
+            style={[
+              styles.uploadArea,
+              uploadAreaStyle,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <View style={styles.uploadHeader}>
+              <Text style={[styles.uploadTitle, { color: colors.text }]}>Upload Files</Text>
+              <Text style={[styles.uploadSubtitle, { color: colors.mutedForeground }]}>
+                Select images or PDFs containing text you want to extract
               </Text>
             </View>
 
-            <Animated.View
-              style={[
-                styles.uploadArea,
-                uploadAreaStyle,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                },
-              ]}
+            <View style={styles.uploadButtonsContainer}>
+              <Button
+                leftIcon={<ImageIcon size={18} color={colors.primaryForeground} />}
+                onPress={handleImageSelection}
+                style={styles.uploadButton}
+              >
+                Select Images
+              </Button>
+
+              <Button
+                leftIcon={<Camera size={18} color={colors.primaryForeground} />}
+                onPress={handleCameraCapture}
+                style={styles.uploadButton}
+              >
+                Take Photo
+              </Button>
+
+              <Button
+                leftIcon={<FileText size={18} color={colors.primaryForeground} />}
+                onPress={handleDocumentSelection}
+                style={styles.uploadButton}
+              >
+                Select PDF
+              </Button>
+            </View>
+
+            {selectedImages.length > 0 && (
+              <View style={styles.selectedImagesContainer}>
+                <Text style={[styles.selectedImagesTitle, { color: colors.text }]}>
+                  Selected Images ({selectedImages.length})
+                </Text>
+
+                <View style={styles.imageGrid}>
+                  {selectedImages.map((uri, index) => (
+                    <Animated.View
+                      key={index}
+                      entering={FadeIn.duration(300)}
+                      exiting={FadeOut.duration(300)}
+                      style={styles.imageContainer}
+                    >
+                      <Image source={{ uri }} style={styles.selectedImage} />
+                      <TouchableOpacity
+                        style={[styles.removeImageButton, { backgroundColor: colors.destructive }]}
+                        onPress={() => handleRemoveImage(index)}
+                      >
+                        <X size={12} color={colors.destructiveForeground} />
+                      </TouchableOpacity>
+                    </Animated.View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </Animated.View>
+
+          <View style={styles.formatContainer}>
+            <Text style={[styles.formatTitle, { color: colors.text }]}>Output Format</Text>
+
+            <TouchableOpacity
+              style={[styles.formatSelector, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={() => Alert.alert("Output Format", "This feature is not available in the current version.")}
             >
-              <View style={styles.uploadHeader}>
-                <Text style={[styles.uploadTitle, { color: colors.text }]}>Upload Files</Text>
-                <Text style={[styles.uploadSubtitle, { color: colors.mutedForeground }]}>
-                  Select images or PDFs containing text you want to extract
+              <View style={styles.formatOption}>
+                {outputFormat === "notes" && <FileText size={20} color={colors.primary} />}
+                {outputFormat === "flashcards" && <FileText size={20} color={colors.primary} />}
+                {outputFormat === "summary" && <FileText size={20} color={colors.primary} />}
+
+                <Text style={[styles.formatOptionText, { color: colors.text }]}>
+                  {outputFormat === "notes" && "Structured Notes"}
+                  {outputFormat === "flashcards" && "Flashcards"}
+                  {outputFormat === "summary" && "Summary"}
                 </Text>
               </View>
+              <ChevronDown size={20} color={colors.mutedForeground} />
+            </TouchableOpacity>
 
-              <View style={styles.uploadButtonsContainer}>
-                <Button
-                  leftIcon={<ImageIcon size={18} color={colors.primaryForeground} />}
-                  onPress={handleImageSelection}
-                  style={styles.uploadButton}
-                >
-                  Select Images
-                </Button>
+            <Button
+              onPress={handleProcessImages}
+              isLoading={isProcessing}
+              disabled={selectedImages.length === 0 || isProcessing}
+              style={styles.processButton}
+            >
+              Process Images
+            </Button>
+          </View>
+        </>
+      ) : (
+        <Animated.View entering={SlideInUp.duration(400)} style={styles.resultContainer}>
+          <View style={styles.resultHeader}>
+            <Text style={[styles.resultTitle, { color: colors.text }]}>Extracted Text</Text>
 
-                <Button
-                  leftIcon={<Camera size={18} color={colors.primaryForeground} />}
-                  onPress={handleCameraCapture}
-                  style={styles.uploadButton}
-                >
-                  Take Photo
-                </Button>
-
-                <Button
-                  leftIcon={<FileText size={18} color={colors.primaryForeground} />}
-                  onPress={handleDocumentSelection}
-                  style={styles.uploadButton}
-                >
-                  Select PDF
-                </Button>
-              </View>
-
-              {selectedImages.length > 0 && (
-                <View style={styles.selectedImagesContainer}>
-                  <Text style={[styles.selectedImagesTitle, { color: colors.text }]}>
-                    Selected Images ({selectedImages.length})
-                  </Text>
-
-                  <View style={styles.imageGrid}>
-                    {selectedImages.map((uri, index) => (
-                      <Animated.View
-                        key={index}
-                        entering={FadeIn.duration(300)}
-                        exiting={FadeOut.duration(300)}
-                        style={styles.imageContainer}
-                      >
-                        <Image source={{ uri }} style={styles.selectedImage} />
-                        <TouchableOpacity
-                          style={[styles.removeImageButton, { backgroundColor: colors.destructive }]}
-                          onPress={() => handleRemoveImage(index)}
-                        >
-                          <X size={12} color={colors.destructiveForeground} />
-                        </TouchableOpacity>
-                      </Animated.View>
-                    ))}
-                  </View>
-                </View>
-              )}
-            </Animated.View>
-
-            <View style={styles.formatContainer}>
-              <Text style={[styles.formatTitle, { color: colors.text }]}>Output Format</Text>
-
+            <View style={styles.resultActions}>
               <TouchableOpacity
-                style={[styles.formatSelector, { backgroundColor: colors.card, borderColor: colors.border }]}
-                onPress={handleShowFormatOptions}
+                style={[styles.actionButton, { backgroundColor: colors.secondary }]}
+                onPress={handleCopyToClipboard}
               >
-                <View style={styles.formatOption}>
-                  {outputFormat === "notes" && <FileText size={20} color={colors.primary} />}
-                  {outputFormat === "flashcards" && <FileText size={20} color={colors.primary} />}
-                  {outputFormat === "summary" && <FileText size={20} color={colors.primary} />}
-
-                  <Text style={[styles.formatOptionText, { color: colors.text }]}>
-                    {outputFormat === "notes" && "Structured Notes"}
-                    {outputFormat === "flashcards" && "Flashcards"}
-                    {outputFormat === "summary" && "Summary"}
-                  </Text>
-                </View>
-                <ChevronDown size={20} color={colors.mutedForeground} />
+                <Copy size={18} color={colors.text} />
               </TouchableOpacity>
 
-              <Button
-                onPress={handleProcessImages}
-                isLoading={isProcessing}
-                disabled={selectedImages.length === 0 || isProcessing}
-                style={styles.processButton}
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: colors.secondary }]}
+                onPress={handleShare}
               >
-                Process Images
-              </Button>
-            </View>
-          </>
-        ) : (
-          <Animated.View entering={SlideInUp.duration(400)} style={styles.resultContainer}>
-            <View style={styles.resultHeader}>
-              <Text style={[styles.resultTitle, { color: colors.text }]}>Extracted Text</Text>
+                <Share2 size={18} color={colors.text} />
+              </TouchableOpacity>
 
-              <View style={styles.resultActions}>
-                <TouchableOpacity
-                  style={[styles.actionButton, { backgroundColor: colors.secondary }]}
-                  onPress={handleCopyToClipboard}
-                >
-                  <Copy size={18} color={colors.text} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.actionButton, { backgroundColor: colors.secondary }]}
-                  onPress={handleShare}
-                >
-                  <Share2 size={18} color={colors.text} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.actionButton, { backgroundColor: colors.secondary }]}
-                  onPress={handleShowFormatOptions}
-                >
-                  <FileText size={18} color={colors.text} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={[styles.outputContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <ScrollView style={styles.outputScroll}>
-                <Text style={[styles.outputText, { color: colors.text }]}>{outputText}</Text>
-              </ScrollView>
-            </View>
-
-            <View style={styles.enhanceContainer}>
-              <Button leftIcon={<Sparkles size={18} color={colors.primaryForeground} />} style={styles.enhanceButton}>
-                Enhance with AI
-              </Button>
-
-              <Button
-                variant="outline"
-                onPress={() => {
-                  setOutputText("")
-                  setExtractedText("")
-                }}
-                style={styles.newUploadButton}
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: colors.secondary }]}
+                onPress={() => Alert.alert("Output Format", "This feature is not available in the current version.")}
               >
-                New Upload
-              </Button>
+                <FileText size={18} color={colors.text} />
+              </TouchableOpacity>
             </View>
-          </Animated.View>
-        )}
-
-        <BottomSheetModal
-          ref={formatBottomSheetRef}
-          index={0}
-          snapPoints={snapPoints}
-          backdropComponent={renderBackdrop}
-          backgroundStyle={{ backgroundColor: colors.background }}
-          handleIndicatorStyle={{ backgroundColor: colors.mutedForeground }}
-        >
-          <View style={styles.bottomSheetContent}>
-            <Text style={[styles.bottomSheetTitle, { color: colors.text }]}>Select Output Format</Text>
-
-            <TouchableOpacity
-              style={[
-                styles.formatOptionItem,
-                outputFormat === "notes" && {
-                  backgroundColor: colors.primary + "15",
-                  borderColor: colors.primary,
-                },
-              ]}
-              onPress={() => handleSelectFormat("notes")}
-            >
-              <View style={styles.formatOptionItemContent}>
-                <View style={[styles.formatOptionIcon, { backgroundColor: colors.primary + "15" }]}>
-                  <FileText size={24} color={colors.primary} />
-                </View>
-                <View style={styles.formatOptionTextContainer}>
-                  <Text style={[styles.formatOptionItemTitle, { color: colors.text }]}>Structured Notes</Text>
-                  <Text style={[styles.formatOptionItemDescription, { color: colors.mutedForeground }]}>
-                    Convert to well-organized, formatted notes with headings and bullet points
-                  </Text>
-                </View>
-              </View>
-              {outputFormat === "notes" && <Check size={20} color={colors.primary} />}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.formatOptionItem,
-                outputFormat === "flashcards" && {
-                  backgroundColor: colors.primary + "15",
-                  borderColor: colors.primary,
-                },
-              ]}
-              onPress={() => handleSelectFormat("flashcards")}
-            >
-              <View style={styles.formatOptionItemContent}>
-                <View style={[styles.formatOptionIcon, { backgroundColor: colors.primary + "15" }]}>
-                  <FileText size={24} color={colors.primary} />
-                </View>
-                <View style={styles.formatOptionTextContainer}>
-                  <Text style={[styles.formatOptionItemTitle, { color: colors.text }]}>Flashcards</Text>
-                  <Text style={[styles.formatOptionItemDescription, { color: colors.mutedForeground }]}>
-                    Create question and answer pairs for effective studying
-                  </Text>
-                </View>
-              </View>
-              {outputFormat === "flashcards" && <Check size={20} color={colors.primary} />}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.formatOptionItem,
-                outputFormat === "summary" && {
-                  backgroundColor: colors.primary + "15",
-                  borderColor: colors.primary,
-                },
-              ]}
-              onPress={() => handleSelectFormat("summary")}
-            >
-              <View style={styles.formatOptionItemContent}>
-                <View style={[styles.formatOptionIcon, { backgroundColor: colors.primary + "15" }]}>
-                  <FileText size={24} color={colors.primary} />
-                </View>
-                <View style={styles.formatOptionTextContainer}>
-                  <Text style={[styles.formatOptionItemTitle, { color: colors.text }]}>Summary</Text>
-                  <Text style={[styles.formatOptionItemDescription, { color: colors.mutedForeground }]}>
-                    Generate a concise summary of the key points and concepts
-                  </Text>
-                </View>
-              </View>
-              {outputFormat === "summary" && <Check size={20} color={colors.primary} />}
-            </TouchableOpacity>
           </View>
-        </BottomSheetModal>
-      </ScrollView>
-    </BottomSheetModalProvider>
+
+          <View style={[styles.outputContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <ScrollView style={styles.outputScroll}>
+              <Text style={[styles.outputText, { color: colors.text }]}>{outputText}</Text>
+            </ScrollView>
+          </View>
+
+          <View style={styles.enhanceContainer}>
+            <Button leftIcon={<Sparkles size={18} color={colors.primaryForeground} />} style={styles.enhanceButton}>
+              Enhance with AI
+            </Button>
+
+            <Button
+              variant="outline"
+              onPress={() => {
+                setOutputText("")
+                setExtractedText("")
+              }}
+              style={styles.newUploadButton}
+            >
+              New Upload
+            </Button>
+          </View>
+        </Animated.View>
+      )}
+    </ScrollView>
   )
 }
 
@@ -677,49 +571,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   newUploadButton: {},
-  bottomSheetContent: {
-    padding: 16,
-  },
-  bottomSheetTitle: {
-    fontSize: 18,
-    fontFamily: "Inter-SemiBold",
-    marginBottom: 16,
-  },
-  formatOptionItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-  },
-  formatOptionItemContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  formatOptionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  formatOptionTextContainer: {
-    flex: 1,
-  },
-  formatOptionItemTitle: {
-    fontSize: 16,
-    fontFamily: "Inter-SemiBold",
-    marginBottom: 4,
-  },
-  formatOptionItemDescription: {
-    fontSize: 14,
-    fontFamily: "Inter-Regular",
-  },
 })
 
-export default AINotesScreen
+export default function WrappedAINotesScreen(props: any) {
+  return (
+    <ErrorBoundary>
+      <AINotesScreen {...props} />
+    </ErrorBoundary>
+  );
+}
 

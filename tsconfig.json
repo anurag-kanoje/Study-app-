@@ -3,12 +3,16 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
+      "@/*": [
+        "app/*"
+      ],
       "*": [
         "src/*"
       ]
     },
     "jsx": "react-native",
-    "moduleResolution": "node",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -23,5 +27,6 @@
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "extends": "expo/tsconfig.base"
 }

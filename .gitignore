@@ -96,6 +96,7 @@ web-build/
 *.p12
 *.key
 *.mobileprovision
+android/.gradle/
 
 # Metro
 .metro-health-check*

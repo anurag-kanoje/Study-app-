@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { TextInput, Button, Text, ProgressBar, Card } from 'react-native-paper';
-import Video from 'react-native-video';
 import { VideoGenerator } from '../services/videoGenerator';
 import { supabaseService } from '../services/supabaseService';
 import { useAuth } from '../contexts/AuthContext';
@@ -79,13 +78,16 @@ export const VideoGeneratorScreen = () => {
       setProgress(1);
 
       // Update video generation record
+      const hasScript = Boolean(videoResult.script?.trim());
       await supabaseService.updateVideoGeneration(generation.id, {
         script: videoResult.script,
-        video_url: videoResult.videoUrl,
-        status: videoResult.error ? 'failed' : 'completed'
+        video_url: videoResult.videoUrl || null,
+        status: hasScript ? 'completed' : 'failed',
       });
 
-      if (videoResult.error) {
+      if (videoResult.error && hasScript) {
+        Alert.alert('Script ready', videoResult.error);
+      } else if (videoResult.error) {
         Alert.alert('Error', videoResult.error);
       }
     } catch (error) {
@@ -142,12 +144,10 @@ export const VideoGeneratorScreen = () => {
                   <Text style={styles.script}>{generation.script}</Text>
 
                   <Text style={styles.videoTitle}>Generated Video:</Text>
-                  <Video
-                    source={{ uri: generation.video_url }}
-                    style={styles.video}
-                    controls
-                    resizeMode="contain"
-                  />
+                  <View style={styles.videoPlaceholder}>
+                    <Text>Video playback not available in this version</Text>
+                    <Text>Video URL: {generation.video_url}</Text>
+                  </View>
                 </>
               )}
             </Card.Content>
@@ -225,9 +225,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
   },
-  video: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#000',
+  videoPlaceholder: {
+    marginTop: 12,
+    marginBottom: 12,
   },
 }); 

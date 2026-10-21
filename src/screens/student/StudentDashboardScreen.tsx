@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, D
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { useTheme } from "../../context/ThemeContext"
-import { useAuth } from "../../context/AuthContext"
+import { useAuth } from "../../contexts/AuthContext"
 import {
   BookOpen,
   Clock,
@@ -20,6 +20,7 @@ import {
   CheckCircle,
 } from "lucide-react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
+import ErrorBoundary from '../../components/ui/ErrorBoundary'
 
 const { width } = Dimensions.get("window")
 
@@ -116,221 +117,223 @@ const StudentDashboardScreen = () => {
   ]
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={[styles.greeting, { color: colors.text }]}>
-            Hello, {user?.displayName?.split(" ")[0] || "Student"}
-          </Text>
-          <Text style={[styles.date, { color: colors.mutedForeground }]}>
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
-          </Text>
-        </View>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={[styles.iconButton, { backgroundColor: colors.secondary }]}
-            onPress={() => navigation.navigate("Notifications")}
-          >
-            <Bell size={20} color={colors.text} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.iconButton, { backgroundColor: colors.secondary }]}
-            onPress={() => navigation.navigate("Settings")}
-          >
-            <Settings size={20} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Stats Cards */}
-      <View style={styles.statsContainer}>
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
-          <View style={styles.statsHeader}>
-            <Text style={[styles.statsTitle, { color: colors.mutedForeground }]}>Study Time Today</Text>
-            <Clock size={16} color={colors.mutedForeground} />
+    <ErrorBoundary>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={[styles.greeting, { color: colors.text }]}>
+              Hello, {user?.displayName?.split(" ")[0] || "Student"}
+            </Text>
+            <Text style={[styles.date, { color: colors.mutedForeground }]}>
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
+            </Text>
           </View>
-          <Text style={[styles.statsValue, { color: colors.text }]}>{studyTime}</Text>
-          <Text style={[styles.statsSubtext, { color: colors.mutedForeground }]}>+15% from yesterday</Text>
-        </Animated.View>
-
-        <Animated.View
-          entering={FadeInDown.delay(200).duration(400)}
-          style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
-          <View style={styles.statsHeader}>
-            <Text style={[styles.statsTitle, { color: colors.mutedForeground }]}>Weekly Goal</Text>
-            <TrendingUp size={16} color={colors.mutedForeground} />
-          </View>
-          <Text style={[styles.statsValue, { color: colors.text }]}>{weeklyGoal}%</Text>
-          <View style={[styles.progressBar, { backgroundColor: colors.muted }]}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  backgroundColor: colors.primary,
-                  width: `${weeklyGoal}%`,
-                },
-              ]}
-            />
-          </View>
-        </Animated.View>
-
-        <Animated.View
-          entering={FadeInDown.delay(300).duration(400)}
-          style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
-          <View style={styles.statsHeader}>
-            <Text style={[styles.statsTitle, { color: colors.mutedForeground }]}>Tasks Completed</Text>
-            <CheckCircle size={16} color={colors.mutedForeground} />
-          </View>
-          <Text style={[styles.statsValue, { color: colors.text }]}>{tasksCompleted}</Text>
-          <Text style={[styles.statsSubtext, { color: colors.mutedForeground }]}>4 due today</Text>
-        </Animated.View>
-
-        <Animated.View
-          entering={FadeInDown.delay(400).duration(400)}
-          style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
-          <View style={styles.statsHeader}>
-            <Text style={[styles.statsTitle, { color: colors.mutedForeground }]}>Study Streak</Text>
-            <Award size={16} color={colors.mutedForeground} />
-          </View>
-          <Text style={[styles.statsValue, { color: colors.text }]}>{studyStreak} days</Text>
-          <View style={styles.streakContainer}>
-            {days.map((day, index) => (
-              <View key={index} style={styles.streakDay}>
-                <View
-                  style={[
-                    styles.streakDot,
-                    {
-                      backgroundColor: completedDays.includes(index) ? colors.primary : colors.muted,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.streakDayText,
-                      {
-                        color: completedDays.includes(index) ? colors.primaryForeground : colors.mutedForeground,
-                      },
-                    ]}
-                  >
-                    {day}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </Animated.View>
-      </View>
-
-      {/* AI Study Tools */}
-      <View style={styles.sectionContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>AI Study Tools</Text>
-          <TouchableOpacity>
-            <Text style={[styles.seeAllText, { color: colors.primary }]}>See All</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.aiToolsContainer}>
-          {aiTools.map((tool, index) => (
-            <Animated.View key={tool.id} entering={FadeInDown.delay(500 + index * 100).duration(400)}>
-              <TouchableOpacity
-                style={[styles.aiToolCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-                onPress={() => navigation.navigate(tool.screen as any)}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.aiToolIconContainer, { backgroundColor: colors.primary + "15" }]}>
-                  {tool.icon}
-                </View>
-                <Text style={[styles.aiToolTitle, { color: colors.text }]}>{tool.title}</Text>
-                <Text style={[styles.aiToolDescription, { color: colors.mutedForeground }]} numberOfLines={2}>
-                  {tool.description}
-                </Text>
-                <View style={styles.aiToolFooter}>
-                  <ChevronRight size={16} color={colors.primary} />
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Upcoming Tasks */}
-      <View style={styles.sectionContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Upcoming Tasks</Text>
-          <TouchableOpacity>
-            <Text style={[styles.seeAllText, { color: colors.primary }]}>See All</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.tasksContainer}>
-          {upcomingTasks.map((task, index) => (
-            <Animated.View
-              key={task.id}
-              entering={FadeInDown.delay(900 + index * 100).duration(400)}
-              style={[
-                styles.taskCard,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  opacity: task.isCompleted ? 0.6 : 1,
-                },
-              ]}
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={[styles.iconButton, { backgroundColor: colors.secondary }]}
+              onPress={() => navigation.navigate("Notifications")}
             >
-              <View style={styles.taskHeader}>
-                <View style={styles.taskTitleContainer}>
-                  <TouchableOpacity
+              <Bell size={20} color={colors.text} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.iconButton, { backgroundColor: colors.secondary }]}
+              onPress={() => navigation.navigate("Settings")}
+            >
+              <Settings size={20} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Stats Cards */}
+        <View style={styles.statsContainer}>
+          <Animated.View
+            entering={FadeInDown.delay(100).duration(400)}
+            style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+          >
+            <View style={styles.statsHeader}>
+              <Text style={[styles.statsTitle, { color: colors.mutedForeground }]}>Study Time Today</Text>
+              <Clock size={16} color={colors.mutedForeground} />
+            </View>
+            <Text style={[styles.statsValue, { color: colors.text }]}>{studyTime}</Text>
+            <Text style={[styles.statsSubtext, { color: colors.mutedForeground }]}>+15% from yesterday</Text>
+          </Animated.View>
+
+          <Animated.View
+            entering={FadeInDown.delay(200).duration(400)}
+            style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+          >
+            <View style={styles.statsHeader}>
+              <Text style={[styles.statsTitle, { color: colors.mutedForeground }]}>Weekly Goal</Text>
+              <TrendingUp size={16} color={colors.mutedForeground} />
+            </View>
+            <Text style={[styles.statsValue, { color: colors.text }]}>{weeklyGoal}%</Text>
+            <View style={[styles.progressBar, { backgroundColor: colors.muted }]}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    backgroundColor: colors.primary,
+                    width: `${weeklyGoal}%`,
+                  },
+                ]}
+              />
+            </View>
+          </Animated.View>
+
+          <Animated.View
+            entering={FadeInDown.delay(300).duration(400)}
+            style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+          >
+            <View style={styles.statsHeader}>
+              <Text style={[styles.statsTitle, { color: colors.mutedForeground }]}>Tasks Completed</Text>
+              <CheckCircle size={16} color={colors.mutedForeground} />
+            </View>
+            <Text style={[styles.statsValue, { color: colors.text }]}>{tasksCompleted}</Text>
+            <Text style={[styles.statsSubtext, { color: colors.mutedForeground }]}>4 due today</Text>
+          </Animated.View>
+
+          <Animated.View
+            entering={FadeInDown.delay(400).duration(400)}
+            style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+          >
+            <View style={styles.statsHeader}>
+              <Text style={[styles.statsTitle, { color: colors.mutedForeground }]}>Study Streak</Text>
+              <Award size={16} color={colors.mutedForeground} />
+            </View>
+            <Text style={[styles.statsValue, { color: colors.text }]}>{studyStreak} days</Text>
+            <View style={styles.streakContainer}>
+              {days.map((day, index) => (
+                <View key={index} style={styles.streakDay}>
+                  <View
                     style={[
-                      styles.checkbox,
+                      styles.streakDot,
                       {
-                        borderColor: task.isCompleted ? colors.primary : colors.border,
-                        backgroundColor: task.isCompleted ? colors.primary : "transparent",
+                        backgroundColor: completedDays.includes(index) ? colors.primary : colors.muted,
                       },
                     ]}
                   >
-                    {task.isCompleted && <CheckCircle size={14} color={colors.primaryForeground} />}
-                  </TouchableOpacity>
-                  <View>
                     <Text
                       style={[
-                        styles.taskTitle,
+                        styles.streakDayText,
                         {
-                          color: colors.text,
-                          textDecorationLine: task.isCompleted ? "line-through" : "none",
+                          color: completedDays.includes(index) ? colors.primaryForeground : colors.mutedForeground,
                         },
                       ]}
                     >
-                      {task.title}
+                      {day}
                     </Text>
-                    <Text style={[styles.taskSubject, { color: colors.mutedForeground }]}>{task.subject}</Text>
                   </View>
                 </View>
-              </View>
-              <View style={styles.taskFooter}>
-                <View style={styles.taskDueContainer}>
-                  <Clock size={14} color={colors.mutedForeground} />
-                  <Text style={[styles.taskDueText, { color: colors.mutedForeground }]}>{task.dueDate}</Text>
-                </View>
-              </View>
-            </Animated.View>
-          ))}
+              ))}
+            </View>
+          </Animated.View>
         </View>
-      </View>
-    </ScrollView>
+
+        {/* AI Study Tools */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>AI Study Tools</Text>
+            <TouchableOpacity>
+              <Text style={[styles.seeAllText, { color: colors.primary }]}>See All</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.aiToolsContainer}>
+            {aiTools.map((tool, index) => (
+              <Animated.View key={tool.id} entering={FadeInDown.delay(500 + index * 100).duration(400)}>
+                <TouchableOpacity
+                  style={[styles.aiToolCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  onPress={() => navigation.navigate(tool.screen as any)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.aiToolIconContainer, { backgroundColor: colors.primary + "15" }]}>
+                    {tool.icon}
+                  </View>
+                  <Text style={[styles.aiToolTitle, { color: colors.text }]}>{tool.title}</Text>
+                  <Text style={[styles.aiToolDescription, { color: colors.mutedForeground }]} numberOfLines={2}>
+                    {tool.description}
+                  </Text>
+                  <View style={styles.aiToolFooter}>
+                    <ChevronRight size={16} color={colors.primary} />
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Upcoming Tasks */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Upcoming Tasks</Text>
+            <TouchableOpacity>
+              <Text style={[styles.seeAllText, { color: colors.primary }]}>See All</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.tasksContainer}>
+            {upcomingTasks.map((task, index) => (
+              <Animated.View
+                key={task.id}
+                entering={FadeInDown.delay(900 + index * 100).duration(400)}
+                style={[
+                  styles.taskCard,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    opacity: task.isCompleted ? 0.6 : 1,
+                  },
+                ]}
+              >
+                <View style={styles.taskHeader}>
+                  <View style={styles.taskTitleContainer}>
+                    <TouchableOpacity
+                      style={[
+                        styles.checkbox,
+                        {
+                          borderColor: task.isCompleted ? colors.primary : colors.border,
+                          backgroundColor: task.isCompleted ? colors.primary : "transparent",
+                        },
+                      ]}
+                    >
+                      {task.isCompleted && <CheckCircle size={14} color={colors.primaryForeground} />}
+                    </TouchableOpacity>
+                    <View>
+                      <Text
+                        style={[
+                          styles.taskTitle,
+                          {
+                            color: colors.text,
+                            textDecorationLine: task.isCompleted ? "line-through" : "none",
+                          },
+                        ]}
+                      >
+                        {task.title}
+                      </Text>
+                      <Text style={[styles.taskSubject, { color: colors.mutedForeground }]}>{task.subject}</Text>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.taskFooter}>
+                  <View style={styles.taskDueContainer}>
+                    <Clock size={14} color={colors.mutedForeground} />
+                    <Text style={[styles.taskDueText, { color: colors.mutedForeground }]}>{task.dueDate}</Text>
+                  </View>
+                </View>
+              </Animated.View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+    </ErrorBoundary>
   )
 }
 

@@ -1,0 +1,30 @@
+# Keep EAS upload focused on the canonical root app.
+
+# VCS and editor
+.git
+.github
+.vscode
+.idea
+
+# Node and caches
+node_modules
+.expo
+.cache
+*.log
+
+# Local env/secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# Native local caches that should never be uploaded
+android/.gradle
+
+# Non-canonical parallel app scaffold
+StudyBuddyMobile
+
+# Local test and tooling artifacts
+coverage
+dist
+web-build

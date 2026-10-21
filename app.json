@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.studybuddy.app"
@@ -21,7 +23,11 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.studybuddy.app"
+      "package": "com.studybuddy.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -44,14 +50,14 @@
         {
           "iCloudContainerEnvironment": "Production"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "owner": "thanos2k25",
     "extra": {
       "eas": {
-        "projectId": "77535ab2-8f68-48fc-add3-49d837e7e6b4"
+        "projectId": "373ca057-7b24-4331-979c-2d3ab9bb3387"
       }
     }
   }
 }
-
